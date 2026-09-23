@@ -1,0 +1,59 @@
+### Use the VS Code "REST Client" extension, then click "Send Request" above each block.
+### Run them top to bottom. Cookies (the refresh token) are remembered automatically.
+@baseUrl = http://localhost:4000/api
+
+### 1. Health check
+GET {{baseUrl}}/health
+
+### 2. Login -> put YOUR admin email and password here
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{$dotenv ADMIN_EMAIL}}",
+  "password": "ChangeMe123"
+}
+
+### (the access token from request 2 is reused below automatically)
+@accessToken = {{login.response.body.$.data.accessToken}}
+
+### 3. Who am I? (protected route)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{accessToken}}
+
+### 4. Protected route WITHOUT a token -> should return 401
+GET {{baseUrl}}/auth/me
+
+### 5. Get a new access token using the refresh cookie
+POST {{baseUrl}}/auth/refresh
+
+### 6. Wrong password -> should return 401 "Invalid email or password"
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{$dotenv ADMIN_EMAIL}}",
+  "password": "wrong-password1"
+}
+
+### 7. Invalid input -> should return 400 with field errors
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "not-an-email"
+}
+
+### 8. Change password (logs out other sessions, keeps this one)
+# PUT {{baseUrl}}/auth/change-password
+# Authorization: Bearer {{accessToken}}
+# Content-Type: application/json
+#
+# {
+#   "currentPassword": "ChangeMe123",
+#   "newPassword": "NewPassword456"
+# }
+
+### 9. Logout -> after this, request 5 (refresh) should fail with 401
+POST {{baseUrl}}/auth/logout

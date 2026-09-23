@@ -1,14 +1,29 @@
 import app from './app.js';
-import { connectDB } from './config/db.js';
+import { env } from './config/env.js';
+import { connectDB, disconnectDB } from './config/db.js';
 
-const PORT = process.env.PORT || 4000;
-
-try {
-  await connectDB(process.env.MONGODB_URI);
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT} (${process.env.NODE_ENV || 'development'})`);
-  });
-} catch (err) {
-  console.error('Failed to start server:', err.message);
+process.on('unhandledRejection', (err) => {
+  console.error('💥 Unhandled promise rejection:', err);
   process.exit(1);
-}
+});
+
+const start = async () => {
+  await connectDB();
+
+  const server = app.listen(env.port, () => {
+    console.log(`🚀 API running at http://localhost:${env.port}/api (${env.nodeEnv})`);
+  });
+
+  const shutdown = (signal) => {
+    console.log(`\n${signal} received. Shutting down gracefully...`);
+    server.close(async () => {
+      await disconnectDB();
+      process.exit(0);
+    });
+  };
+
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+};
+
+start();

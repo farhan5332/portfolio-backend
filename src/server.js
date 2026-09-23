@@ -1,0 +1,14 @@
+import app from './app.js';
+import { connectDB } from './config/db.js';
+
+const PORT = process.env.PORT || 4000;
+
+try {
+  await connectDB(process.env.MONGODB_URI);
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT} (${process.env.NODE_ENV || 'development'})`);
+  });
+} catch (err) {
+  console.error('Failed to start server:', err.message);
+  process.exit(1);
+}

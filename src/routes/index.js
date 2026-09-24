@@ -1,19 +1,32 @@
 import { Router } from 'express';
 import healthRoutes from './health.routes.js';
 import authRoutes from './auth.routes.js';
+import aboutRoutes from './about.routes.js';
+import skillRoutes from './skill.routes.js';
+import projectRoutes from './project.routes.js';
+import blogRoutes from './blog.routes.js';
+import experienceRoutes from './experience.routes.js';
+import testimonialRoutes from './testimonial.routes.js';
+import serviceRoutes from './service.routes.js';
+import statsRoutes from './stats.routes.js';
 
 const router = Router();
 
 router.use('/health', healthRoutes);
 router.use('/auth', authRoutes);
 
-// Day 3:  router.use('/about', aboutRoutes);
-//         router.use('/skills', skillRoutes);
-//         router.use('/projects', projectRoutes);
-//         router.use('/blogs', blogRoutes);
-//         router.use('/experience', experienceRoutes);
-//         router.use('/testimonials', testimonialRoutes);
-//         router.use('/services', serviceRoutes);
+// Content (GET = public, POST/PUT/DELETE = admin only)
+router.use('/about', aboutRoutes);
+router.use('/skills', skillRoutes);
+router.use('/projects', projectRoutes);
+router.use('/blogs', blogRoutes);
+router.use('/experience', experienceRoutes);
+router.use('/testimonials', testimonialRoutes);
+router.use('/services', serviceRoutes);
+
+// Admin dashboard
+router.use('/stats', statsRoutes);
+
 // Day 4:  router.use('/upload', uploadRoutes);
 // Day 11: router.use('/contact', contactRoutes);
 

@@ -44,3 +44,9 @@ export const authorize =
     }
     next();
   };
+// For public routes: visitors pass through, but if a token IS sent it must be valid.
+// This lets the admin panel see drafts while the public site sees only published items.
+export const optionalAuth = (req, res, next) => {
+  if (!req.headers.authorization) return next();
+  return protect(req, res, next);
+};

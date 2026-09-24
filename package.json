@@ -8,7 +8,9 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "create-admin": "node scripts/createAdmin.js",
-    "reset-admin": "node scripts/createAdmin.js --reset"
+    "reset-admin": "node scripts/createAdmin.js --reset",
+    "seed": "node scripts/seed.js",
+    "seed:fresh": "node scripts/seed.js --fresh"
   },
   "engines": {
     "node": ">=20"

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { text, requiredText, url, image, stringList, order, date } from './common.js';
+import { text, requiredText, url, image, stringList, order, nullableDate } from './common.js';
 
 export const createProjectSchema = z.object({
   title: requiredText(120, 'Title'),
@@ -13,8 +13,8 @@ export const createProjectSchema = z.object({
   repoUrl: url.optional(),
   featured: z.boolean().optional(),
   status: z.enum(['draft', 'published']).optional(),
-  startDate: date.optional(),
-  endDate: date.optional(),
+  startDate: nullableDate.optional(), // null clears the date
+  endDate: nullableDate.optional(),
   order: order.optional(),
 });
 

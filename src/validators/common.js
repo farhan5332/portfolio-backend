@@ -40,6 +40,10 @@ export const order = z.coerce.number().int().min(0);
 
 export const date = z.coerce.date({ error: 'Invalid date' });
 
+// A date that can be cleared by sending null. (date.nullable() would NOT work:
+// coerce turns null into new Date(null) = 1 Jan 1970 before the null check runs.)
+export const nullableDate = z.union([z.null(), date], { error: 'Invalid date' });
+
 // PUT /api/<resource>/reorder   body: { items: [{ id, order }] }
 export const reorderSchema = z.object({
   items: z

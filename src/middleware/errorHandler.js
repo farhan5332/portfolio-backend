@@ -32,6 +32,17 @@ export const errorHandler = (err, req, res, next) => {
     message = `Duplicate value for: ${Object.keys(err.keyValue).join(', ')}`;
   }
 
+  // File upload problems (too big, too many files, wrong field name)
+  if (err.name === 'MulterError') {
+    const messages = {
+      LIMIT_FILE_SIZE: 'File is too large',
+      LIMIT_FILE_COUNT: 'Only one file can be uploaded at a time',
+      LIMIT_UNEXPECTED_FILE: 'Unexpected file field. Send the file in a field named "file".',
+    };
+    statusCode = err.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+    message = messages[err.code] || err.message;
+  }
+
   if (statusCode >= 500) console.error('💥', err);
 
   res.status(statusCode).json({

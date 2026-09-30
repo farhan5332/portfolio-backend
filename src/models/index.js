@@ -6,3 +6,4 @@ export { Blog } from './Blog.js';
 export { Experience } from './Experience.js';
 export { Testimonial } from './Testimonial.js';
 export { Service } from './Service.js';
+export { Media } from './Media.js';

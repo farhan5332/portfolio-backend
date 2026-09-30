@@ -9,6 +9,8 @@ import experienceRoutes from './experience.routes.js';
 import testimonialRoutes from './testimonial.routes.js';
 import serviceRoutes from './service.routes.js';
 import statsRoutes from './stats.routes.js';
+import uploadRoutes from './upload.routes.js';
+import mediaRoutes from './media.routes.js';
 
 const router = Router();
 
@@ -27,7 +29,10 @@ router.use('/services', serviceRoutes);
 // Admin dashboard
 router.use('/stats', statsRoutes);
 
-// Day 4:  router.use('/upload', uploadRoutes);
+// File uploads + media library (admin only)
+router.use('/upload', uploadRoutes);
+router.use('/media', mediaRoutes);
+
 // Day 11: router.use('/contact', contactRoutes);
 
 export default router;

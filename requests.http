@@ -57,3 +57,107 @@ Content-Type: application/json
 
 ### 9. Logout -> after this, request 5 (refresh) should fail with 401
 POST {{baseUrl}}/auth/logout
+### Create a skill
+POST {{baseUrl}}/skills
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "React",
+  "category": "Frontend",
+  "level": 90
+}
+### All projects INCLUDING drafts (admin sees 3)
+GET {{baseUrl}}/projects
+Authorization: Bearer {{accessToken}}
+
+### Create a project (starts as a draft)
+# @name newProject
+POST {{baseUrl}}/projects
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "title": "My New Project",
+  "summary": "Short description for the project card.",
+  "techStack": ["React", "Node.js"],
+  "liveUrl": "https://example.com"
+}
+
+###
+@projectId = {{newProject.response.body.$.data._id}}
+
+### Publish it (only the fields you send change)
+PUT {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "status": "published"
+}
+
+### Delete it
+DELETE {{baseUrl}}/projects/{{projectId}}
+Authorization: Bearer {{accessToken}}
+
+### Update About
+PUT {{baseUrl}}/about
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Farha",
+  "headline": "Full-Stack Developer"
+}
+
+### Dashboard counts
+GET {{baseUrl}}/stats
+Authorization: Bearer {{accessToken}}
+
+### Validation error -> 400 with field messages
+POST {{baseUrl}}/skills
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "level": 150
+}
+
+### ---------- Day 4: uploads & media library ----------
+### Upload an image (put any .png next to this file and change the path)
+# @name upload
+POST {{baseUrl}}/upload/image
+Authorization: Bearer {{accessToken}}
+Content-Type: multipart/form-data; boundary=Boundary
+
+--Boundary
+Content-Disposition: form-data; name="alt"
+
+My profile photo
+--Boundary
+Content-Disposition: form-data; name="file"; filename="photo.png"
+Content-Type: image/png
+
+< ./photo.png
+--Boundary--
+
+###
+@mediaId = {{upload.response.body.$.data._id}}
+
+### List images in the media library
+GET {{baseUrl}}/media?kind=image
+Authorization: Bearer {{accessToken}}
+
+### Update alt text
+PUT {{baseUrl}}/media/{{mediaId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "alt": "Updated alt text"
+}
+
+### Delete it (also removes the file from /uploads)
+DELETE {{baseUrl}}/media/{{mediaId}}
+Authorization: Bearer {{accessToken}}

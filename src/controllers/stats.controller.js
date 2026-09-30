@@ -1,4 +1,12 @@
-import { Project, Blog, Skill, Experience, Testimonial, Service } from '../models/index.js';
+import {
+  Project,
+  Blog,
+  Skill,
+  Experience,
+  Testimonial,
+  Service,
+  Media,
+} from '../models/index.js';
 
 // GET /api/stats  (admin) - counts for the dashboard cards
 export const getStats = async (req, res) => {
@@ -11,6 +19,7 @@ export const getStats = async (req, res) => {
     experience,
     testimonials,
     services,
+    media,
     recentBlogs,
     recentProjects,
   ] = await Promise.all([
@@ -22,6 +31,7 @@ export const getStats = async (req, res) => {
     Experience.countDocuments(),
     Testimonial.countDocuments(),
     Service.countDocuments(),
+    Media.countDocuments(),
     Blog.find().sort({ updatedAt: -1 }).limit(5).select('title slug status updatedAt'),
     Project.find().sort({ updatedAt: -1 }).limit(5).select('title slug status updatedAt'),
   ]);
@@ -36,6 +46,7 @@ export const getStats = async (req, res) => {
         experience,
         testimonials,
         services,
+        media,
       },
       recent: { blogs: recentBlogs, projects: recentProjects },
     },

@@ -3,16 +3,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
 import { env } from './config/env.js';
+import { UPLOAD_DIR, UPLOAD_URL_PREFIX } from './config/uploads.js';
 import routes from './routes/index.js';
 import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { ApiError } from './utils/ApiError.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 // Render/Railway sit behind a proxy. This makes req.ip (used by the rate limiter)
@@ -39,8 +36,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan(env.isProd ? 'combined' : 'dev'));
 
-// Uploaded files (Day 4) are served from /uploads/<filename>
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+// Uploaded files are served from /uploads/<filename>.
+// Filenames are unique and never reused, so browsers may cache them for a long time.
+app.use(
+  UPLOAD_URL_PREFIX,
+  express.static(UPLOAD_DIR, { maxAge: '30d', immutable: true, index: false, dotfiles: 'deny' })
+);
 
 // All API routes live under /api
 app.use('/api', routes);

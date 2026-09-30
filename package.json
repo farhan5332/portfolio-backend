@@ -10,7 +10,10 @@
     "create-admin": "node scripts/createAdmin.js",
     "reset-admin": "node scripts/createAdmin.js --reset",
     "seed": "node scripts/seed.js",
-    "seed:fresh": "node scripts/seed.js --fresh"
+    "seed:fresh": "node scripts/seed.js --fresh",
+    "admin:install": "npm --prefix admin install",
+    "admin:dev": "npm --prefix admin run dev",
+    "admin:build": "npm --prefix admin run build"
   },
   "engines": {
     "node": ">=20"

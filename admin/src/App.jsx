@@ -9,6 +9,7 @@ import AboutPage from './pages/AboutPage.jsx';
 import ResourceListPage from './pages/ResourceListPage.jsx';
 import ResourceEditPage from './pages/ResourceEditPage.jsx';
 import MediaPage from './pages/MediaPage.jsx';
+import MessagesPage from './pages/MessagesPage.jsx';
 import SettingsPage from './pages/SettingsPage.jsx';
 
 function RequireAuth({ children }) {
@@ -53,6 +54,7 @@ export default function App() {
             <Route path=":id" element={<ResourceEditPage key={`${r.key}-edit`} resource={r} />} />
           </Route>
         ))}
+        <Route path="messages" element={<MessagesPage />} />
         <Route path="media" element={<MediaPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<NotFound />} />

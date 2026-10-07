@@ -1,26 +1,19 @@
-import crypto from 'node:crypto';
-import fs from 'node:fs';
 import path from 'node:path';
 import multer from 'multer';
+import sharp from 'sharp';
 import {
-  UPLOAD_DIR,
   ALLOWED_TYPES,
   MAX_IMAGE_SIZE,
   MAX_DOCUMENT_SIZE,
+  MAX_IMAGE_DIMENSION,
+  IMAGE_QUALITY,
 } from '../config/uploads.js';
 import { ApiError } from '../utils/ApiError.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-
-// Files get a random name so uploads can't overwrite each other or use odd characters.
-// e.g. "1727712345678-9f86d081884c7d65.png"
-const storage = multer.diskStorage({
-  destination: UPLOAD_DIR,
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`);
-  },
-});
+// Files are held in memory (they are small, see the size limits) so they can be
+// checked and optimized before anything is stored.
+const storage = multer.memoryStorage();
 
 // First check: mime type and extension must both be on the allow list.
 const fileFilter = (kind) => (req, file, cb) => {
@@ -46,27 +39,60 @@ const SIGNATURES = {
   'application/pdf': (b) => b.subarray(0, 5).toString('latin1') === '%PDF-',
 };
 
-const verifySignature = async (req, res, next) => {
+const verifySignature = (req, res, next) => {
   if (!req.file) return next(new ApiError(400, 'No file uploaded. Send it in a field named "file".'));
 
-  const handle = await fs.promises.open(req.file.path, 'r');
-  const header = Buffer.alloc(16);
-  try {
-    await handle.read(header, 0, 16, 0);
-  } finally {
-    await handle.close();
-  }
-
-  if (!SIGNATURES[req.file.mimetype]?.(header)) {
-    await fs.promises.unlink(req.file.path).catch(() => {});
+  if (!SIGNATURES[req.file.mimetype]?.(req.file.buffer)) {
     return next(new ApiError(400, 'File content does not match its type'));
   }
   next();
 };
 
+// Photos straight from a camera are far bigger than a web page needs. Every image is
+// rotated upright, shrunk to fit MAX_IMAGE_DIMENSION, stripped of metadata (EXIF can hold
+// GPS coordinates) and saved as WebP. GIFs are left alone so animations keep working.
+const optimizeImage = asyncHandler(async (req, res, next) => {
+  const { file } = req;
+  file.ext = path.extname(file.originalname).toLowerCase();
+
+  if (!file.mimetype.startsWith('image/')) return next();
+
+  try {
+    if (file.mimetype === 'image/gif') {
+      const { width, height } = await sharp(file.buffer).metadata();
+      Object.assign(file, { width, height });
+      return next();
+    }
+
+    const { data, info } = await sharp(file.buffer)
+      .rotate() // apply the EXIF orientation before the metadata is dropped
+      .resize({
+        width: MAX_IMAGE_DIMENSION,
+        height: MAX_IMAGE_DIMENSION,
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .webp({ quality: IMAGE_QUALITY })
+      .toBuffer({ resolveWithObject: true });
+
+    Object.assign(file, {
+      buffer: data,
+      size: info.size,
+      mimetype: 'image/webp',
+      ext: '.webp',
+      width: info.width,
+      height: info.height,
+    });
+  } catch {
+    throw new ApiError(400, 'This image could not be read. It may be damaged.');
+  }
+  next();
+});
+
 const uploader = (kind, maxSize) => [
   multer({ storage, fileFilter: fileFilter(kind), limits: { fileSize: maxSize, files: 1 } }).single('file'),
   verifySignature,
+  optimizeImage,
 ];
 
 // Usage: router.post('/image', protect, ...uploadImage, handler)

@@ -1,0 +1,30 @@
+# Render blueprint: one web service runs the API and serves the admin panel at /admin.
+# Render dashboard -> New -> Blueprint -> pick this repo. See "Deployment" in README.md.
+services:
+  - type: web
+    name: portfolio-cms
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: NODE_ENV
+        value: production
+      - key: UPLOAD_STORAGE
+        value: database
+      - key: JWT_ACCESS_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_DAYS
+        value: 7
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      # "sync: false" = Render asks for the value when the blueprint is created.
+      - key: MONGODB_URI
+        sync: false
+      - key: CLIENT_URLS # the portfolio's URL, e.g. https://your-site.vercel.app
+        sync: false

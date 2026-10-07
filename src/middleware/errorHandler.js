@@ -43,7 +43,11 @@ export const errorHandler = (err, req, res, next) => {
     message = messages[err.code] || err.message;
   }
 
-  if (statusCode >= 500) console.error('💥', err);
+  if (statusCode >= 500) {
+    console.error('💥', err);
+    // Internal details (database errors, file paths...) stay in the server log.
+    if (env.isProd) message = 'Something went wrong. Please try again later.';
+  }
 
   res.status(statusCode).json({
     success: false,

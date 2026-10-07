@@ -1,7 +1,7 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import crypto from 'node:crypto';
 import { Media } from '../models/index.js';
-import { UPLOAD_DIR, UPLOAD_URL_PREFIX } from '../config/uploads.js';
+import { UPLOAD_URL_PREFIX } from '../config/uploads.js';
+import { saveFile, deleteFile, openStoredFile } from '../services/storage.service.js';
 import { ApiError } from '../utils/ApiError.js';
 import { isObjectId } from '../utils/objectId.js';
 import { createCrudController } from './crud.factory.js';
@@ -23,33 +23,55 @@ export const { list, getOne, update } = crud;
 export const create = (kind) => async (req, res) => {
   const { file } = req;
 
+  // Files get a random name so uploads can't overwrite each other or use odd characters.
+  // e.g. "1727712345678-9f86d081884c7d65.webp"
+  const filename = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${file.ext}`;
+  await saveFile(filename, file.buffer, file.mimetype);
+
   try {
     const media = await Media.create({
       kind,
-      filename: file.filename,
+      filename,
       originalName: file.originalname,
-      url: `${UPLOAD_URL_PREFIX}/${file.filename}`,
+      url: `${UPLOAD_URL_PREFIX}/${filename}`,
       mimeType: file.mimetype,
       size: file.size,
+      width: file.width,
+      height: file.height,
       alt: typeof req.body?.alt === 'string' ? req.body.alt.slice(0, 200) : '',
       uploadedBy: req.user?._id,
     });
     res.status(201).json({ success: true, message: 'File uploaded', data: media });
   } catch (err) {
-    await fs.unlink(file.path).catch(() => {}); // don't leave orphan files behind
+    await deleteFile(filename).catch(() => {}); // don't leave orphan files behind
     throw err;
   }
 };
 
-// DELETE /api/media/:id  - removes the database entry AND the file on disk
+// DELETE /api/media/:id  - removes the database entry AND the stored file
 export const remove = async (req, res) => {
   const media = isObjectId(req.params.id) ? await Media.findByIdAndDelete(req.params.id) : null;
   if (!media) throw new ApiError(404, 'Media not found');
 
-  // basename() guarantees we only ever delete inside the uploads folder
-  await fs.unlink(path.join(UPLOAD_DIR, path.basename(media.filename))).catch((err) => {
-    if (err.code !== 'ENOENT') throw err;
-  });
+  await deleteFile(media.filename);
 
   res.json({ success: true, message: 'Media deleted', data: { _id: media._id } });
+};
+
+// GET /uploads/:filename  (public) - only used with UPLOAD_STORAGE=database.
+// With local storage, express.static serves the uploads folder instead (see app.js).
+export const serve = async (req, res) => {
+  const file = await openStoredFile(req.params.filename);
+  if (!file) throw new ApiError(404, 'File not found');
+
+  // Filenames are unique and never reused, so browsers may cache them for a long time.
+  res.set({
+    'Content-Type': file.mimeType,
+    'Cache-Control': 'public, max-age=2592000, immutable',
+    ETag: file.etag,
+  });
+  if (req.headers['if-none-match'] === file.etag) return res.status(304).end();
+
+  res.set('Content-Length', String(file.size));
+  file.stream().on('error', () => res.destroy()).pipe(res);
 };

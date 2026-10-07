@@ -6,7 +6,10 @@ import tailwindcss from '@tailwindcss/vite';
 // admin panel and API the same origin, so the refresh-token cookie just works.
 const API_TARGET = process.env.API_TARGET || 'http://localhost:4000';
 
-export default defineConfig({
+// The production build is served by the API at /admin (see src/app.js).
+// Hosting it on its own domain instead? Build with ADMIN_BASE=/
+export default defineConfig(({ command }) => ({
+  base: command === 'build' ? process.env.ADMIN_BASE || '/admin/' : '/',
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
@@ -15,4 +18,4 @@ export default defineConfig({
       '/uploads': API_TARGET,
     },
   },
-});
+}));

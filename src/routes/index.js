@@ -11,6 +11,7 @@ import serviceRoutes from './service.routes.js';
 import statsRoutes from './stats.routes.js';
 import uploadRoutes from './upload.routes.js';
 import mediaRoutes from './media.routes.js';
+import contactRoutes from './contact.routes.js';
 
 const router = Router();
 
@@ -33,6 +34,7 @@ router.use('/stats', statsRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/media', mediaRoutes);
 
-// Day 11: router.use('/contact', contactRoutes);
+// Contact form (POST = public, inbox = admin only)
+router.use('/contact', contactRoutes);
 
 export default router;

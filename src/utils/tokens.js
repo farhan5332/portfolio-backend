@@ -27,9 +27,10 @@ export const REFRESH_COOKIE = 'refreshToken';
 
 export const refreshCookieOptions = () => ({
   httpOnly: true,
-  secure: env.isProd, // HTTPS only in production
-  // In production the admin panel and API are on different domains, which requires 'none'.
-  sameSite: env.isProd ? 'none' : 'lax',
+  // HTTPS only in production. Browsers also refuse a 'none' cookie that isn't secure.
+  secure: env.isProd || env.cookieSameSite === 'none',
+  // 'lax' when the admin panel is served by this API (/admin), 'none' when it is on another domain.
+  sameSite: env.cookieSameSite,
   path: '/api/auth', // the cookie is only sent to auth routes
   maxAge: env.jwt.refreshExpiresDays * 24 * 60 * 60 * 1000,
 });

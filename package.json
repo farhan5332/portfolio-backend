@@ -7,10 +7,14 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "build": "npm --prefix admin ci --include=dev && npm --prefix admin run build",
+    "test": "node --test",
     "create-admin": "node scripts/createAdmin.js",
     "reset-admin": "node scripts/createAdmin.js --reset",
     "seed": "node scripts/seed.js",
     "seed:fresh": "node scripts/seed.js --fresh",
+    "seed:profile": "node scripts/profile.js",
+    "media:to-db": "node scripts/uploadsToDatabase.js",
     "admin:install": "npm --prefix admin install",
     "admin:dev": "npm --prefix admin run dev",
     "admin:build": "npm --prefix admin run build"
@@ -31,6 +35,8 @@
     "mongoose": "^9.10.2",
     "morgan": "^1.12.1",
     "multer": "^2.4.0",
+    "nodemailer": "^10.0.13",
+    "sharp": "^0.35.5",
     "zod": "^4.6.5"
   },
   "devDependencies": {

@@ -161,3 +161,46 @@ Content-Type: application/json
 ### Delete it (also removes the file from /uploads)
 DELETE {{baseUrl}}/media/{{mediaId}}
 Authorization: Bearer {{accessToken}}
+
+### ---------- Day 11: contact form ----------
+### Send a message (public, max 5 per hour per IP)
+POST {{baseUrl}}/contact
+Content-Type: application/json
+
+{
+  "name": "Jane Visitor",
+  "email": "jane@example.com",
+  "subject": "Project enquiry",
+  "message": "Hi! I saw your portfolio and would like to talk about a project."
+}
+
+### Invalid input -> 400 with field errors
+POST {{baseUrl}}/contact
+Content-Type: application/json
+
+{
+  "name": "",
+  "email": "not-an-email",
+  "message": "short"
+}
+
+### Inbox: unread messages (admin)
+# @name inbox
+GET {{baseUrl}}/contact?read=false
+Authorization: Bearer {{accessToken}}
+
+###
+@messageId = {{inbox.response.body.$.data[0]._id}}
+
+### Mark as read
+PUT {{baseUrl}}/contact/{{messageId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "read": true
+}
+
+### Delete a message
+DELETE {{baseUrl}}/contact/{{messageId}}
+Authorization: Bearer {{accessToken}}

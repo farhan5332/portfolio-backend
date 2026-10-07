@@ -86,13 +86,12 @@ export default function DashboardPage() {
             <StatCard to="/testimonials" label="Testimonials" value={stats.counts.testimonials} />
             <StatCard to="/services" label="Services" value={stats.counts.services} />
             <StatCard to="/media" label="Media files" value={stats.counts.media ?? 0} />
-            <Link
-              to="/about"
-              className="flex flex-col justify-center rounded-xl border border-dashed border-indigo-300 bg-indigo-50/50 p-5 text-indigo-700 transition-colors hover:bg-indigo-50"
-            >
-              <p className="text-sm font-semibold">Edit About →</p>
-              <p className="mt-1 text-xs text-indigo-600/80">Name, bio, photo, socials</p>
-            </Link>
+            <StatCard
+              to="/messages"
+              label="Messages"
+              value={stats.counts.messages?.total ?? 0}
+              detail={`${stats.counts.messages?.unread ?? 0} unread`}
+            />
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">

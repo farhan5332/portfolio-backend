@@ -9,6 +9,7 @@ const NAV = [
     title: 'Content',
     links: [{ to: '/about', label: 'About' }, ...collectionResources.map((r) => ({ to: `/${r.key}`, label: r.label }))],
   },
+  { title: 'Inbox', links: [{ to: '/messages', label: 'Messages' }] },
   { title: 'Library', links: [{ to: '/media', label: 'Media' }] },
   { title: 'Account', links: [{ to: '/settings', label: 'Settings' }] },
 ];

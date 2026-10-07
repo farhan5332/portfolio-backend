@@ -6,6 +6,7 @@ import {
   Testimonial,
   Service,
   Media,
+  Message,
 } from '../models/index.js';
 
 // GET /api/stats  (admin) - counts for the dashboard cards
@@ -20,6 +21,8 @@ export const getStats = async (req, res) => {
     testimonials,
     services,
     media,
+    messages,
+    unreadMessages,
     recentBlogs,
     recentProjects,
   ] = await Promise.all([
@@ -32,6 +35,8 @@ export const getStats = async (req, res) => {
     Testimonial.countDocuments(),
     Service.countDocuments(),
     Media.countDocuments(),
+    Message.countDocuments(),
+    Message.countDocuments({ read: false }),
     Blog.find().sort({ updatedAt: -1 }).limit(5).select('title slug status updatedAt'),
     Project.find().sort({ updatedAt: -1 }).limit(5).select('title slug status updatedAt'),
   ]);
@@ -47,6 +52,7 @@ export const getStats = async (req, res) => {
         testimonials,
         services,
         media,
+        messages: { total: messages, unread: unreadMessages },
       },
       recent: { blogs: recentBlogs, projects: recentProjects },
     },

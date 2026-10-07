@@ -38,4 +38,22 @@ export const env = {
     accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
     refreshExpiresDays: Number(process.env.JWT_REFRESH_EXPIRES_DAYS) || 7,
   },
+  // 'local' = uploads/ folder, 'database' = MongoDB GridFS (for hosts that wipe the disk)
+  uploadStorage: process.env.UPLOAD_STORAGE === 'database' ? 'database' : 'local',
+  // 'none' is only needed when the admin panel is hosted on a different domain than the API.
+  cookieSameSite: process.env.COOKIE_SAMESITE === 'none' ? 'none' : 'lax',
+  // Optional: without these, contact messages are still saved but no email is sent.
+  smtp: {
+    enabled: Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 587,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    to: process.env.CONTACT_TO || process.env.SMTP_USER,
+  },
 };
+
+if (!env.smtp.enabled) {
+  console.warn('⚠️  SMTP is not configured: contact messages will be saved but not emailed.');
+}
